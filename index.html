@@ -1,132 +1,184 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Mandao: compra, paga en línea, recibe tu código y recoge tu pedido directamente en el comercio.">
-  <meta name="theme-color" content="#07113d">
-  <title>Mandao — Pide por Mandao</title>
-  <link rel="icon" type="image/png" href="logo-mandao.png">
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Mandao es una plataforma informativa para comprar en comercios aliados y gestionar el proceso desde su aplicación móvil. La app se encuentra actualmente en periodo de pruebas.">
+<meta name="theme-color" content="#07113d">
+<title>Mandao | Información oficial</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="container nav-wrap">
-      <a class="brand" href="#inicio" aria-label="Mandao - Inicio">
-        <img src="logo-mandao.png" alt="Logo oficial Mandao">
-      </a>
-      <button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="mainNav">
-        <span></span><span></span><span></span>
-      </button>
-      <nav class="main-nav" id="mainNav" aria-label="Navegación principal">
-        <a class="active" href="#inicio">Inicio</a>
+
+<header class="site-header">
+  <div class="container nav" id="nav">
+    <a class="brand" href="#inicio" aria-label="Mandao inicio">
+      <img src="logo-mandao.png" alt="Mandao - Pide por Mandao">
+    </a>
+
+    <nav class="nav-links" aria-label="Navegación principal">
+      <a class="active" href="#inicio">Inicio</a>
+      <a href="#como-funciona">¿Cómo funciona?</a>
+      <a href="#comercios">Comercios</a>
+      <a href="#preguntas">Preguntas</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+
+    <a class="header-cta" href="#estado">Conoce Mandao</a>
+    <button class="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobile-menu">☰</button>
+  </div>
+</header>
+<div class="info-banner"><div class="container"><strong>Mandao está en periodo de pruebas.</strong> Esta web es informativa; las funciones operativas se desarrollan dentro de la aplicación.</div></div>
+
+
+<main id="inicio">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <span class="kicker">Información oficial de Mandao</span>
+        <h1>Conoce <span>Mandao.</span><br>Una nueva forma de comprar.</h1>
+        <p class="hero-text">Mandao busca facilitar la compra en comercios aliados mediante una experiencia digital sencilla. <strong>La aplicación se encuentra actualmente en periodo de pruebas.</strong></p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#como-funciona">Conoce cómo funciona</a>
+          <a class="btn btn-secondary" href="#estado">Estado de la app</a>
+        </div>
+
+        <div class="promise">
+          <span>Compra digital</span>
+          <span>Pago en línea</span>
+          <span>Recogida en comercio</span>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-label="Logo Mandao">
+        <div class="logo-stage">
+          <img class="hero-logo" src="logo-mandao.png" alt="Logo oficial Mandao">
+          <div class="logo-caption">PIDE POR MANDAO</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="como-funciona">
+    <div class="container">
+      <div class="section-heading">
+        <h2>¿Cómo funciona <span>Mandao?</span></h2>
+        <p>Mandao está diseñado para conectar la experiencia de compra digital con la recogida directa en el comercio.</p>
+      </div>
+      <div class="steps">
+        <article class="step"><div class="step-number">01</div><h3>Explora</h3><p>Conoce los comercios y productos que formen parte de la plataforma.</p></article>
+        <article class="step"><div class="step-number">02</div><h3>Selecciona</h3><p>Elige la compra que deseas realizar a través de la aplicación Mandao.</p></article>
+        <article class="step"><div class="step-number">03</div><h3>Paga</h3><p>La aplicación permitirá gestionar el proceso de pago de forma digital.</p></article>
+        <article class="step"><div class="step-number">04</div><h3>Recoge</h3><p>Una vez habilitado el servicio, podrás recoger tu compra directamente en el comercio.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section benefits" id="estado">
+    <div class="container">
+      <div class="benefit-grid">
+        <div class="benefit-main">
+          <h2>Mandao está en <span>periodo de pruebas.</span></h2>
+          <p>Esta página es informativa. La operación funcional del servicio se realizará desde la aplicación Mandao.</p>
+        </div>
+        <div class="benefit"><strong>Aplicación</strong><small>La experiencia funcional de Mandao está siendo probada y ajustada.</small></div>
+        <div class="benefit"><strong>Pagos</strong><small>El procesamiento de pagos se integrará en la experiencia digital de la aplicación.</small></div>
+        <div class="benefit"><strong>Comercios</strong><small>Mandao está orientado a trabajar con comercios aliados.</small></div>
+        <div class="benefit"><strong>Información</strong><small>La web presenta el servicio, sus características y sus canales de contacto.</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section audience" id="comercios">
+    <div class="container">
+      <div class="section-heading">
+        <h2>Mandao para <span>clientes y comercios.</span></h2>
+        <p>La propuesta de Mandao conecta una experiencia de compra digital con la operación del comercio aliado.</p>
+      </div>
+      <div class="audience-grid">
+        <article class="audience-card client">
+          <h3>Para clientes</h3>
+          <ul>
+            <li>Conocer una nueva forma de realizar compras.</li>
+            <li>Gestionar la experiencia desde la aplicación.</li>
+            <li>Realizar el proceso de pago de forma digital cuando el servicio esté habilitado.</li>
+            <li>Recoger la compra directamente en el comercio.</li>
+          </ul>
+        </article>
+        <article class="audience-card merchant">
+          <h3>Para comercios</h3>
+          <ul>
+            <li>Formar parte de una plataforma orientada a compras digitales.</li>
+            <li>Recibir y gestionar pedidos realizados por clientes.</li>
+            <li>Preparar pedidos para recogida en el establecimiento.</li>
+            <li>Contar con una experiencia digital enfocada en facilitar la compra.</li>
+          </ul>
+          <div class="merchant-note">La incorporación de comercios y la disponibilidad de las funciones dependen de la etapa de pruebas y habilitación de Mandao.</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section faq" id="preguntas">
+    <div class="container">
+      <div class="section-heading">
+        <h2>Preguntas <span>frecuentes</span></h2>
+        <p>Información básica sobre Mandao y su etapa actual.</p>
+      </div>
+      <div style="max-width:820px;margin:auto">
+        <details><summary>¿Qué es Mandao?</summary><p>Mandao es una propuesta de servicio orientada a facilitar compras en comercios aliados mediante una experiencia digital y recogida directa en el establecimiento.</p></details>
+        <details><summary>¿La página web permite realizar compras?</summary><p>No. Esta página es principalmente informativa. Las funciones de compra, gestión y pago se desarrollarán dentro de la aplicación Mandao.</p></details>
+        <details><summary>¿La aplicación ya está disponible para todo el público?</summary><p>La aplicación se encuentra actualmente en periodo de pruebas. La disponibilidad pública de las funciones se comunicará por los canales oficiales de Mandao.</p></details>
+        <details><summary>¿Dónde se realiza la operación de pago?</summary><p>El proceso de pago está previsto para realizarse dentro de la experiencia digital de Mandao, una vez habilitado el servicio correspondiente.</p></details>
+        <details><summary>¿Cómo puedo contactar a Mandao?</summary><p>Puedes comunicarte a través de mandaoapp1@gmail.com para consultas generales.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="pide">
+    <div class="container">
+      <div class="cta-box">
+        <div>
+          <h2>Conoce Mandao.</h2>
+          <p>La aplicación se encuentra en periodo de pruebas mientras seguimos preparando la experiencia.</p>
+        </div>
+        <a class="btn" href="mailto:mandaoapp1@gmail.com">Contactar a Mandao</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer id="contacto">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <img class="footer-logo" src="logo-mandao.png" alt="Mandao">
+        <p>Mandao es una propuesta digital para facilitar compras en comercios aliados. La aplicación se encuentra actualmente en periodo de pruebas.</p>
+      </div>
+      <div>
+        <h4>Enlaces</h4>
+        <a href="#inicio">Inicio</a>
         <a href="#como-funciona">¿Cómo funciona?</a>
         <a href="#comercios">Comercios</a>
         <a href="#preguntas">Preguntas</a>
-        <a href="#contacto">Contacto</a>
-        <a class="nav-order" href="#pedido">Pide por Mandao</a>
-      </nav>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <a href="terminos-y-condiciones.html">Términos y condiciones</a>
+        <a href="politica-de-privacidad.html">Política de privacidad</a>
+        <a href="tratamiento-de-datos.html">Tratamiento de datos personales</a>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <p>mandaoapp1@gmail.com</p>
+        <p>Colombia</p>
+      </div>
     </div>
-  </header>
+    <div class="footer-bottom">© 2026 Mandao. Todos los derechos reservados.</div>
+  </div>
+</footer>
 
-  <main>
-    <section class="hero" id="inicio">
-      <div class="hero-bg"></div>
-      <div class="container hero-grid">
-        <div class="hero-copy">
-          <p class="eyebrow">COMPRA DE UNA FORMA MÁS SENCILLA</p>
-          <h1>Pide por <span>Mandao.</span><br>No hagas fila ni te enredes con monedas.</h1>
-          <p class="hero-text">Elige tu compra, paga en línea, recibe tu código y pasa por el comercio a <strong>recoger tu Mandao.</strong></p>
-          <div class="hero-actions">
-            <a class="btn btn-primary" href="#pedido">Pide por Mandao</a>
-            <a class="btn btn-outline" href="#como-funciona">Así funciona</a>
-          </div>
-          <div class="hero-points" aria-label="Beneficios principales">
-            <span>✓ Pago en línea</span><span>✓ Código de compra</span><span>✓ Recogida en comercio</span>
-          </div>
-        </div>
-        <div class="hero-logo" aria-hidden="true">
-          <div class="logo-halo"><img src="logo-mandao.png" alt=""></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section intro" id="como-funciona">
-      <div class="container narrow">
-        <p class="eyebrow center">SIMPLE, RÁPIDO Y CLARO</p>
-        <h2 class="center">Compra. Paga.<br><span>Recoge.</span></h2>
-        <p class="lead center">Una forma sencilla de pagar en línea y recoger tu compra directamente en el comercio.</p>
-      </div>
-      <div class="container steps-grid">
-        <article class="step-card"><div class="step-number">01</div><h3>Elige tu compra</h3><p>Selecciona lo que quieres comprar en un comercio disponible en Mandao.</p></article>
-        <article class="step-card"><div class="step-number">02</div><h3>Paga en línea</h3><p>Realiza el pago desde Mandao de forma cómoda y segura.</p></article>
-        <article class="step-card"><div class="step-number">03</div><h3>Recibe tu código</h3><p>Obtén un código único que identifica tu compra.</p></article>
-        <article class="step-card"><div class="step-number">04</div><h3>Recoge tu Mandao</h3><p>Presenta el código en el comercio y recibe tu compra.</p></article>
-      </div>
-    </section>
-
-    <section class="promise" id="beneficios">
-      <div class="container promise-grid">
-        <div class="promise-logo"><img src="logo-mandao.png" alt="Mandao"></div>
-        <div class="promise-copy"><h2>No hagas fila<br>ni te enredes<br><span>con monedas.</span></h2></div>
-        <div class="promise-items">
-          <div class="promise-item"><b>Más rápido</b><small>Sin filas ni esperas innecesarias.</small></div>
-          <div class="promise-item"><b>Más fácil</b><small>Paga en línea desde donde estés.</small></div>
-          <div class="promise-item"><b>Más cómodo</b><small>Solo presenta tu código y recoge.</small></div>
-          <div class="promise-item"><b>Más seguro</b><small>Tus pagos y datos están protegidos.</small></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section audiences" id="comercios">
-      <div class="container audience-grid">
-        <article class="audience-card client">
-          <div><p class="card-kicker">Para clientes</p><h2>Compra fácil y segura.</h2><ul><li>Compra sin hacer fila.</li><li>Paga en línea desde cualquier lugar.</li><li>Recoge cuando te quede mejor.</li><li>Apoya tus comercios favoritos.</li></ul></div>
-          <div class="simple-illustration pink-illustration" aria-hidden="true">🛍️</div>
-        </article>
-        <article class="audience-card merchant">
-          <div><p class="card-kicker blue">Para comercios</p><h2>Recibe pedidos pagados en línea.</h2><ul><li>Recibe pedidos ya pagados.</li><li>Organiza y alista tus pedidos.</li><li>Más ventas y clientes satisfechos.</li><li>Panel fácil de usar.</li></ul></div>
-          <div class="simple-illustration blue-illustration" aria-hidden="true">🏪</div>
-        </article>
-      </div>
-    </section>
-
-    <section class="merchant-cta">
-      <div class="container merchant-cta-inner">
-        <div><p class="card-kicker">¿Tienes un comercio?</p><h2>Únete a Mandao</h2><p>Empieza a recibir pedidos pagados en línea. Más ventas, menos filas.</p></div>
-        <div class="cta-buttons"><a class="btn btn-dark" href="mailto:mandaoapp1@gmail.com?subject=Quiero%20registrar%20mi%20comercio">Registrar mi comercio</a><a class="btn btn-light" href="mailto:mandaoapp1@gmail.com?subject=Información%20panel%20de%20comercio">Ingresar al panel</a></div>
-      </div>
-    </section>
-
-    <section class="section order" id="pedido">
-      <div class="container order-box">
-        <div><p class="eyebrow">PIDE POR MANDAO</p><h2>Tu compra empieza aquí.</h2><p>Estamos construyendo la experiencia de compra de Mandao. Escríbenos para conocer los comercios disponibles y comenzar.</p></div>
-        <a class="btn btn-primary big" href="mailto:mandaoapp1@gmail.com?subject=Quiero%20pedir%20por%20Mandao">Quiero pedir por Mandao →</a>
-      </div>
-    </section>
-
-    <section class="section faq" id="preguntas">
-      <div class="container narrow">
-        <p class="eyebrow center">PREGUNTAS FRECUENTES</p><h2 class="center">Preguntas <span>frecuentes</span></h2>
-        <div class="faq-list">
-          <div class="faq-item"><button class="faq-question" type="button" aria-expanded="false">¿Qué es Mandao?<span>+</span></button><div class="faq-answer">Mandao te permite comprar en comercios aliados, pagar en línea y recoger tu pedido directamente en el establecimiento.</div></div>
-          <div class="faq-item"><button class="faq-question" type="button" aria-expanded="false">¿Cómo funciona?<span>+</span></button><div class="faq-answer">Eliges tu compra, pagas en línea, recibes un código único y lo presentas en el comercio para recoger tu pedido.</div></div>
-          <div class="faq-item"><button class="faq-question" type="button" aria-expanded="false">¿Mandao entrega la compra en el comercio?<span>+</span></button><div class="faq-answer">Sí. Mandao está pensado para comprar y pagar en línea y recoger directamente en el comercio.</div></div>
-          <div class="faq-item"><button class="faq-question" type="button" aria-expanded="false">¿Dónde puedo usar Mandao?<span>+</span></button><div class="faq-answer">Puedes usar Mandao en los comercios aliados disponibles dentro de la plataforma.</div></div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer" id="contacto">
-    <div class="container footer-grid">
-      <div class="footer-brand"><img src="logo-mandao.png" alt="Mandao"><p>Pide por Mandao: aparta tu pedido pagando en línea.<br>No hagas fila ni te enredes con monedas.</p></div>
-      <div><h3>Enlaces</h3><a href="#inicio">Inicio</a><a href="#como-funciona">¿Cómo funciona?</a><a href="#comercios">Comercios</a><a href="#preguntas">Preguntas</a><a href="#pedido">Pide por Mandao</a></div>
-      <div><h3>Legal</h3><a href="#">Términos y condiciones</a><a href="#">Política de privacidad</a><a href="#">Tratamiento de datos</a></div>
-      <div><h3>Contacto</h3><a href="mailto:mandaoapp1@gmail.com">mandaoapp1@gmail.com</a><p>Colombia</p></div>
-    </div>
-    <div class="copyright">© 2026 Mandao. Todos los derechos reservados.</div>
-  </footer>
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

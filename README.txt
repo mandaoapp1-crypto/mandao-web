@@ -1,15 +1,17 @@
-MANDAO — PAQUETE LISTO PARA PUBLICAR
+MANDAO — SITIO INFORMATIVO
 
-Archivos incluidos:
-- index.html   Página principal
-- style.css    Diseño y responsive
-- script.js    Menú móvil, FAQ y navegación
-- logo-mandao.png Logo de Mandao
+Paquete preparado para publicar en GitHub Pages.
 
-PUBLICACIÓN:
-1. Sube esta carpeta completa a un servicio de hosting estático como Netlify.
-2. El archivo de entrada es index.html.
-3. Mantén los cuatro archivos en la misma carpeta.
+Archivos principales:
+- index.html
+- style.css
+- script.js
+- logo-mandao.png
+- politica-de-privacidad.html
+- tratamiento-de-datos.html
+- terminos-y-condiciones.html
 
-CONTACTO CONFIGURADO EN LA PÁGINA:
-mandaoapp1@gmail.com
+La web es informativa y comunica que la aplicación Mandao está en periodo de pruebas. No integra pagos en esta etapa.
+
+Contacto: mandaoapp1@gmail.com
+País: Colombia
