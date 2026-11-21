@@ -1748,7 +1748,7 @@ async function loadAllAndRenderCliente(){
   renderProdGrid();
   renderCartbar();
   renderInfoComercio();
-  ensureCustomerRegistered();
+  // Permitir explorar el catálogo sin registro; solicitarlo al comprar.
   showInstallBanner();
   promoConocida = snapshotPromos(STATE.promos);
   if(promoPollTimer) clearInterval(promoPollTimer);
@@ -2911,7 +2911,20 @@ function renderCartbar(){
 }
 
 /* ---------------- checkout flow ---------------- */
-function openCheckout(){
+async function openCheckout(){
+  if(!currentCustomer){
+    const tel = localStorage.getItem('mandao_cliente_tel');
+    if(tel){
+      try{
+        const customer = await sgetCustomer(tel);
+        if(customer){ currentCustomer = customer; renderCustomerBadge(); }
+      }catch(e){ console.error('Validación de cliente',e); }
+    }
+  }
+  if(!currentCustomer){
+    await ensureCustomerRegistered();
+    return;
+  }
   document.getElementById('checkoutOverlay').classList.remove('hidden');
   renderCheckoutStep1();
 }
