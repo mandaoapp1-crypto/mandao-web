@@ -1,0 +1,89 @@
+// BORRADOR PARA EMULADOR — NO PUBLICAR SIN PRUEBAS.
+// Basado en las reglas compartidas el 21/11/2026.
+// Protege el programa de fundadores; mantiene las reglas operativas actuales,
+// incluida la regla de inventario del cliente, que requiere rediseño posterior.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isStaffAuth() {
+      return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+    function isAdmin() {
+      return signedIn() && request.auth.uid == 'WyHLc4kRQ6XyalFfi5rLYKj7ZZy2';
+    }
+    function isOwner(code) {
+      return isStaffAuth() && request.auth.token.email == code.lower() + '@tiendas.mandaw.app';
+    }
+    match /stores/{code} {
+      allow get: if signedIn();
+      allow list: if isAdmin();
+      allow create: if isOwner(code)
+        && request.resource.data.keys().hasOnly(['info','createdAt','estado','tabsHabilitados'])
+        && request.resource.data.estado == 'pendiente';
+      allow update: if isAdmin()
+        || (isOwner(code)
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['membership'])
+            && request.resource.data.get('estado', null) == resource.data.get('estado', null)
+            && request.resource.data.get('tabsHabilitados', null) == resource.data.get('tabsHabilitados', null)
+            && request.resource.data.get('fechaVencimientoPago', null) == resource.data.get('fechaVencimientoPago', null)
+            && request.resource.data.get('motivoBloqueo', null) == resource.data.get('motivoBloqueo', null)
+            && request.resource.data.get('motivoRechazo', null) == resource.data.get('motivoRechazo', null))
+        || (signedIn()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['productos','promos','facturaConsecutivo'])
+            && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['productos'])
+                || request.resource.data.productos.size() == resource.data.productos.size()));
+      allow delete: if isAdmin();
+      match /privado/{docId} {
+        allow read, write: if isAdmin() || isOwner(code);
+      }
+      match /pedidos/{orderId} {
+        allow create: if signedIn()
+          && request.resource.data.clienteUid == request.auth.uid
+          && request.resource.data.tiendaCodigo == code
+          && request.resource.data.status == 'pagado'
+          && request.resource.data.verificado == (request.resource.data.requiereVerificacion == false);
+        allow get, list: if isAdmin() || isOwner(code)
+          || (signedIn() && resource.data.clienteUid == request.auth.uid);
+        allow update: if isAdmin() || isOwner(code)
+          || (signedIn() && resource.data.clienteUid == request.auth.uid
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['invoiceNumber','invoiceSent']));
+        allow delete: if isAdmin();
+      }
+    }
+    match /founderProgram/{docId} {
+      allow read: if isAdmin();
+      allow write: if false; // Solo Firebase Admin SDK desde backend
+    }
+    match /founderAssignments/{storeId} {
+      allow read: if isAdmin();
+      allow write: if false; // Solo Firebase Admin SDK desde backend
+    }
+    match /clientes/{tel} {
+      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow get: if signedIn() && resource.data.ownerUid == request.auth.uid;
+      allow update: if signedIn() && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == resource.data.ownerUid;
+      allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+    }
+    match /pqr/{id} {
+      allow create: if signedIn()
+        && request.resource.data.clienteUid == request.auth.uid
+        && request.resource.data.estado == 'RECIBIDA';
+      allow get, list: if isAdmin()
+        || (signedIn() && resource.data.clienteUid == request.auth.uid)
+        || isOwner(resource.data.tiendaCodigo);
+      allow update: if isAdmin()
+        || (isOwner(resource.data.tiendaCodigo)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['respuesta','historial']));
+      allow delete: if isAdmin();
+    }
+    match /alertasSoporte/{id} {
+      allow create: if isStaffAuth() && request.resource.data.atendida == false;
+      allow read, update, delete: if isAdmin();
+    }
+    match /auditoria/{id} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
