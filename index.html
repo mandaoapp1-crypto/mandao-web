@@ -2911,7 +2911,7 @@ function renderCartbar(){
 }
 
 /* ---------------- checkout flow ---------------- */
-async function openCheckout(){
+async async function openCheckout(){
   if(!currentCustomer){
     const tel = localStorage.getItem('mandao_cliente_tel');
     if(tel){
@@ -3189,7 +3189,7 @@ async function confirmPaid(){
   myOrderId = code;
   recordarTienda(currentStoreId);
   STATE.cart = {};
-  await descontarStockPorVenta(items, currentCustomer ? currentCustomer.telefono : null);
+  // El cliente no modifica existencias; el comercio debe confirmar y ajustar inventario.
   renderProdGrid();
   renderCartbar();
   renderCheckoutStep2(pedido);
