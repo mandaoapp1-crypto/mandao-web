@@ -44,7 +44,11 @@ service cloud.firestore {
           && request.resource.data.clienteUid == request.auth.uid
           && request.resource.data.tiendaCodigo == code
           && request.resource.data.status == 'pagado'
-          && request.resource.data.verificado == (request.resource.data.requiereVerificacion == false);
+          && request.resource.data.verificado == false
+          && request.resource.data.items is list
+          && request.resource.data.items.size() > 0
+          && request.resource.data.total is number
+          && request.resource.data.total >= 0;
         allow get, list: if isAdmin() || isOwner(code)
           || (signedIn() && resource.data.clienteUid == request.auth.uid);
         allow update: if isAdmin() || isOwner(code)
