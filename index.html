@@ -414,6 +414,7 @@
       <h3>Comercios registrados</h3>
       <span class="count" id="adminStoreCount">0 tiendas</span>
     </div>
+    <button class="save-btn secondary" onclick="sincronizarDirectorioMandaw()" style="margin-bottom:12px;">🔄 Actualizar directorio público de tiendas</button>
     <div id="adminStoreList"></div>
   </div>
 </div>
@@ -1183,7 +1184,7 @@ function toast(msg){
 function genCode(){ return String(Math.floor(1000 + Math.random()*9000)); }
 
 /* ---------------- default data ---------------- */
-const MANDAW_CONTACTO = 'WhatsApp +57 300 123 4567 · hola@mandao.com.co';
+const MANDAW_CONTACTO = 'WhatsApp +57 305 808 2865 · contacto@falcondigital.com.co';
 const CATEGORIAS_PRODUCTO = ['Frutas y verduras','Carnes, pollo y pescado','Lácteos y huevos','Panadería','Granos, cereales y pastas','Enlatados y conservas','Aceites, salsas y condimentos','Bebidas','Snacks y dulces','Congelados y helados','Aseo del hogar','Aseo y cuidado personal','Bebés y niños','Mascotas','Licores y cigarrillos','Otros'];
 const CATEGORIA_PALABRAS_CLAVE = {
   'Frutas y verduras': ['manzana','banano','platano','plátano','mango','papa','tomate','cebolla','zanahoria','naranja','limon','limón','lechuga','fruta','verdura','aguacate','mora','fresa','piña','uva','pepino','cilantro','papaya'],
@@ -1695,7 +1696,7 @@ async function abrirMisTiendas(){
 
 async function tiendaAprobada(code){
   const estado = await sget('tienda:'+code+':estado');
-  return estado !== 'pendiente' && estado !== 'bloqueada' && estado !== 'rechazada';
+  return estado === 'aprobada' || estado === 'activa';
 }
 
 async function abrirTiendaDesdeURL(code){
@@ -4189,6 +4190,16 @@ async function eliminarTiendaAdmin(code, nombre){
   await registrarAuditoria('eliminar_tienda', { code, nombre });
   toast('Tienda eliminada permanentemente');
   renderAdminPanel();
+}
+async function sincronizarDirectorioMandaw(){
+  if(!confirm('¿Actualizar el directorio de clientes con las tiendas aprobadas?')) return;
+  try{
+    const {getFunctions,httpsCallable} = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js');
+    const {getApp} = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+    const fn = httpsCallable(getFunctions(getApp(),'us-central1'),'rebuildPublicStoreDirectory');
+    const result = await fn({});
+    toast('Directorio actualizado: '+result.data.published+' tiendas disponibles');
+  }catch(e){console.error('Sincronización directorio',e);toast('No se actualizó el directorio: '+(e.message||'error'));}
 }
 async function asignarFundadorMandaw(code){
   if(!confirm('¿Asignar uno de los 50 cupos de Comercio Fundador a '+code+'? Esta acción reserva el cupo.')) return;
