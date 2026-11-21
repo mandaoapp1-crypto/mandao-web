@@ -48,3 +48,46 @@ exports.assignFounder = onCall({region:"us-central1", enforceAppCheck:false}, as
     return {alreadyAssigned:false, founderNumber};
   });
 });
+
+const {onDocumentWritten} = require("firebase-functions/v2/firestore");
+
+function publicStoreData(store) {
+  if (!store || !["aprobada", "activa"].includes(store.estado)) return null;
+  const info = store.info || {};
+  const nombre = typeof info.nombre === "string" ? info.nombre.trim().slice(0,100) : "";
+  if (!nombre) return null;
+  const categoria = typeof info.categoria === "string" ? info.categoria.trim().slice(0,80) : "Comercio";
+  return {nombre, categoria, activa:true};
+}
+
+// Publicar únicamente nombre y categoría. No copiar datos privados del comercio.
+exports.syncPublicStore = onDocumentWritten({document:"stores/{storeId}",region:"us-central1"}, async event => {
+  const ref = db.doc("publicStores/" + event.params.storeId);
+  const after = event.data?.after;
+  const data = after?.exists ? publicStoreData(after.data()) : null;
+  if (!data) {
+    await ref.delete();
+    return;
+  }
+  await ref.set(data);
+});
+
+// Una única sincronización inicial para tiendas ya existentes, ejecutada por administrador.
+exports.rebuildPublicStoreDirectory = onCall({region:"us-central1",enforceAppCheck:false}, async request => {
+  if (!request.auth || (request.auth.uid !== "WyHLc4kRQ6XyalFfi5rLYKj7ZZy2" && request.auth.token.admin !== true))
+    throw new HttpsError("permission-denied","Solo administradores autorizados.");
+  const snap = await db.collection("stores").get();
+  let published=0, hidden=0;
+  let batch=db.batch(), operations=0;
+  const flush=async()=>{if(operations){await batch.commit();batch=db.batch();operations=0;}};
+  for (const doc of snap.docs) {
+    const data=publicStoreData(doc.data());
+    const ref=db.doc("publicStores/"+doc.id);
+    if (data) {batch.set(ref,data);published++;}
+    else {batch.delete(ref);hidden++;}
+    operations++;
+    if (operations>=400) await flush();
+  }
+  await flush();
+  return {published,hidden,total:snap.size};
+});
