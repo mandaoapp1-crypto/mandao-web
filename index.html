@@ -1005,7 +1005,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, collectionGroup, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, collectionGroup, query, where, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getAuth, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, EmailAuthProvider, linkWithCredential } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const firebaseConfig = {
@@ -1020,7 +1020,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   window.__db = db;
-  window.__fs = { doc, getDoc, setDoc, deleteDoc, collection, getDocs, collectionGroup, query, where };
+  window.__fs = { doc, getDoc, setDoc, deleteDoc, collection, getDocs, collectionGroup, query, where, runTransaction };
   const auth = getAuth(app);
   window.__auth = auth;
   window.__authFns = { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, EmailAuthProvider, linkWithCredential };
@@ -3162,7 +3162,7 @@ async function confirmPaid(){
     metodoPago: metodoElegido ? metodoElegido.metodo : '',
     numeroPago: metodoElegido ? metodoElegido.numero : '',
     billete, cambio,
-    requiereVerificacion, numeroOrigenPago, verificado: !requiereVerificacion,
+    requiereVerificacion, numeroOrigenPago, verificado: false,
     clienteNombre: currentCustomer ? currentCustomer.nombre : '',
     clienteTelefono: currentCustomer ? currentCustomer.telefono : '',
     clienteUid: uidActual(),
@@ -3171,7 +3171,7 @@ async function confirmPaid(){
     aceptoTerminos: true,
     versionTerminosAceptada: TERMINOS_VERSION,
     fechaAceptacionTerminos: Date.now(),
-    historial: [{ estado:'pagado', fecha: Date.now(), nota:'Pedido creado y pago iniciado por el cliente' }]
+    historial: [{ estado:'pagado', fecha: Date.now(), nota:'Pedido recibido; pago pendiente de confirmar por el comercio' }]
   };
   const btn = document.querySelector('.confirm-btn');
   if(btn){ btn.disabled = true; btn.textContent = 'Confirmando...'; }
@@ -3338,29 +3338,57 @@ async function renderPedidosList(){
 }
 
 async function avanzarEstadoPedido(code, nuevoEstado){
-  const pedido = await sget(pKey(code));
-  if(!pedido) return;
-  const orden = ['pagado','preparando','listo','entregado'];
-  const actual = orden.indexOf(pedido.status);
-  if(orden.indexOf(nuevoEstado) !== actual+1){
-    toast('Ese pedido ya cambió de estado');
+  if(!esStaff()){ toast('Solo el comercio puede gestionar pedidos'); return; }
+  try{
+    const db = await waitForDb();
+    const { doc, runTransaction } = window.__fs;
+    const storeRef = doc(db,'stores',currentStoreId);
+    const orderRef = doc(db,'stores',currentStoreId,'pedidos',code);
+    await runTransaction(db, async tx=>{
+      const orderSnap = await tx.get(orderRef);
+      if(!orderSnap.exists()) throw new Error('Pedido no encontrado');
+      const pedido = orderSnap.data();
+      const orden = ['pagado','preparando','listo','entregado'];
+      if(orden.indexOf(nuevoEstado)!==orden.indexOf(pedido.status)+1) throw new Error('El pedido cambió de estado');
+      if(pedido.requiereVerificacion && !pedido.verificado) throw new Error('Confirma primero la recepción del pago');
+      if(nuevoEstado==='preparando'){
+        const storeSnap = await tx.get(storeRef);
+        if(!storeSnap.exists()) throw new Error('Comercio no encontrado');
+        const productos = structuredClone(storeSnap.data().productos||[]);
+        for(const it of (pedido.items||[])){
+          const p = productos.find(x=>x.id===(it.productoId||it.id));
+          if(!p) throw new Error('Producto no disponible: '+it.nombre);
+          const v = it.varianteId ? (p.variantes||[]).find(x=>x.id===it.varianteId) : p;
+          if(!v) throw new Error('Variante no disponible: '+it.nombre);
+          const qty = Number(it.qty);
+          if(!Number.isInteger(qty)||qty<=0) throw new Error('Cantidad inválida');
+          if(v.stock!==null && v.stock!==undefined){
+            if(!Number.isFinite(Number(v.stock))||Number(v.stock)<qty) throw new Error('Stock insuficiente: '+it.nombre);
+            v.stock = Number(v.stock)-qty;
+          }
+        }
+        tx.update(storeRef,{productos});
+      }
+      tx.update(orderRef,{
+        status:nuevoEstado,
+        historial:[...(pedido.historial||[]),{estado:nuevoEstado,fecha:Date.now(),nota:'Actualizado por el comercio'}]
+      });
+    });
+    if(nuevoEstado==='preparando') STATE.productos=(await sget(tKey('productos')))||STATE.productos;
+    toast('Pedido #'+code+' actualizado a '+nuevoEstado);
     renderPedidosList();
-    return;
+    renderMetrics();
+  }catch(e){
+    console.error('Cambio de estado',e);
+    toast(e.message||'No se pudo actualizar el pedido');
+    renderPedidosList();
   }
-  pedido.status = nuevoEstado;
-  pedido.historial = pedido.historial || [];
-  pedido.historial.push({ estado: nuevoEstado, fecha: Date.now(), nota:'Cambiado por el comercio' });
-  const ok = await sset(pKey(code), pedido);
-  if(!ok){ toast('No se pudo actualizar, intenta de nuevo'); return; }
-  const mensajes = { preparando:'Pedido #'+code+' en preparación', listo:'Pedido #'+code+' marcado como listo — cliente notificado', entregado:'Pedido #'+code+' entregado' };
-  toast(mensajes[nuevoEstado] || 'Actualizado');
-  renderPedidosList();
-  renderMetrics();
 }
 
 async function confirmarPagoRecibido(code){
   const pedido = await sget(pKey(code));
   if(!pedido) return;
+  if(!esStaff()){ toast('Solo el comercio puede confirmar pagos'); return; }
   pedido.verificado = true;
   pedido.historial = pedido.historial || [];
   pedido.historial.push({ estado:'pago_confirmado', fecha: Date.now(), nota:'Comercio confirmó el pago recibido' });
