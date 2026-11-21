@@ -3153,7 +3153,7 @@ async function confirmPaid(){
     if(billete < total){ toast('Ese billete no alcanza para cubrir el total'); return; }
     cambio = billete - total;
   }
-  const requiereVerificacion = !!(metodoElegido && metodoElegido.metodo !== 'Efectivo');
+  const requiereVerificacion = true; // El comercio debe confirmar todo pago, incluido efectivo.
   const numeroOrigenPagoEl = document.getElementById('chk-numero-origen');
   const numeroOrigenPago = numeroOrigenPagoEl ? numeroOrigenPagoEl.value.trim() : '';
   const pedido = {
@@ -3198,7 +3198,7 @@ async function confirmPaid(){
 
 function renderCheckoutStep2(pedido){
   document.getElementById('checkoutTitle').textContent = '¡Pedido enviado!';
-  document.getElementById('checkoutSubtitle').textContent = 'El comercio está preparando tu bolsa';
+  document.getElementById('checkoutSubtitle').textContent = 'Pedido recibido, pendiente de confirmar el pago';
   document.getElementById('checkoutBody').innerHTML = `
     <div class="stamp-wrap">
       <div class="stamp"><span class="lbl">Pedido</span><span class="code">${pedido.id}</span></div>
@@ -3209,7 +3209,7 @@ function renderCheckoutStep2(pedido){
       <p style="margin:4px 0 0;font-size:12px;">El comercio confirmará apenas vea el pago en su cuenta.</p>
     </div>
     ` : ''}
-    <div class="status-line" id="statusLine"><span class="pulse-dot"></span>Esperando que alisten tu pedido...</div>
+    <div class="status-line" id="statusLine"><span class="pulse-dot"></span>Esperando confirmación del comercio...</div>
     <div id="readyBanner"></div>
     <p class="muted" style="text-align:center;margin-top:14px;">Guarda este código: te lo pedirán al recoger tu bolsa.</p>
     ${pedido.wantsInvoice ? `<button class="save-btn secondary" style="width:100%;margin-top:6px;" onclick="verFactura('${pedido.id}')">Ver mi factura</button>` : ''}
@@ -3297,7 +3297,7 @@ async function renderPedidosList(){
   if(!activos.length){ el.innerHTML = '<div class="empty-state">No hay pedidos pendientes por empacar.</div>'; return; }
   el.innerHTML = activos.map(p=>{
     const etiquetas = { pagado:'Pedido recibido', preparando:'En preparación', listo:'Listo para recoger', entregado:'Entregado' };
-    const bloqueadoPorPago = (p.requiereVerificacion && !p.verificado);
+    const bloqueadoPorPago = !p.verificado;
     let accionHtml = '';
     if(!bloqueadoPorPago){
       if(p.status==='pagado') accionHtml = `<button class="ready-action" onclick="avanzarEstadoPedido('${p.id}','preparando')">▶ Empezar a preparar</button>`;
@@ -3321,7 +3321,7 @@ async function renderPedidosList(){
           <div class="verif-box">
             <div>⏳ Esperando pago de <b>${COP(p.total)}</b> por ${esc(p.metodoPago||'')}</div>
             ${p.numeroOrigenPago ? `<div class="verif-code">Cliente dice que envía desde: ${esc(p.numeroOrigenPago)}</div>` : ''}
-            <p style="margin:4px 0 8px;font-size:12px;color:#8a5a12;">Revisa tu app bancaria y confirma cuando veas el pago.</p>
+            <p style="margin:4px 0 8px;font-size:12px;color:#8a5a12;">Comprueba la recepción real del dinero antes de confirmar. En efectivo, verifica el pago en persona.</p>
             <button class="ready-action" onclick="confirmarPagoRecibido('${p.id}')">✔ Confirmar recibido</button>
           </div>
           ` : ''}
@@ -3350,11 +3350,12 @@ async function avanzarEstadoPedido(code, nuevoEstado){
       const pedido = orderSnap.data();
       const orden = ['pagado','preparando','listo','entregado'];
       if(orden.indexOf(nuevoEstado)!==orden.indexOf(pedido.status)+1) throw new Error('El pedido cambió de estado');
-      if(pedido.requiereVerificacion && !pedido.verificado) throw new Error('Confirma primero la recepción del pago');
+      if(!pedido.verificado) throw new Error('Confirma primero la recepción del pago');
       if(nuevoEstado==='preparando'){
         const storeSnap = await tx.get(storeRef);
         if(!storeSnap.exists()) throw new Error('Comercio no encontrado');
         const productos = structuredClone(storeSnap.data().productos||[]);
+        let totalValidado = 0;
         for(const it of (pedido.items||[])){
           const p = productos.find(x=>x.id===(it.productoId||it.id));
           if(!p) throw new Error('Producto no disponible: '+it.nombre);
@@ -3362,11 +3363,14 @@ async function avanzarEstadoPedido(code, nuevoEstado){
           if(!v) throw new Error('Variante no disponible: '+it.nombre);
           const qty = Number(it.qty);
           if(!Number.isInteger(qty)||qty<=0) throw new Error('Cantidad inválida');
+          if(!Number.isFinite(Number(it.precio)) || Number(it.precio)<0) throw new Error('Precio inválido');
+          totalValidado += Number(it.precio)*qty;
           if(v.stock!==null && v.stock!==undefined){
             if(!Number.isFinite(Number(v.stock))||Number(v.stock)<qty) throw new Error('Stock insuficiente: '+it.nombre);
             v.stock = Number(v.stock)-qty;
           }
         }
+        if(Math.abs(totalValidado-Number(pedido.total))>0.01) throw new Error('El total del pedido no coincide con sus artículos');
         tx.update(storeRef,{productos});
       }
       tx.update(orderRef,{
