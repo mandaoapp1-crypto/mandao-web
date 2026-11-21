@@ -350,8 +350,13 @@
 <!-- CLIENTE AUTH -->
 <div id="clienteAuth" class="landing hidden">
   <img class="brand-logo-img" style="width:72px;height:72px;margin-bottom:16px;box-shadow:var(--sombra);" alt="Mandaw" src="">
-  <h1 style="font-size:28px;">Entrar a una tienda</h1>
-  <p>Escribe el código de 5 caracteres que te dio el comercio, o abre el enlace que te compartieron.</p>
+  <h1 style="font-size:28px;">Explora tiendas en MANDAW</h1>
+  <p>Descubre comercios disponibles sin registrarte.</p>
+  <div class="auth-box" style="max-width:440px;width:100%;text-align:left;">
+    <div class="field"><label>Buscar tiendas</label><input id="buscar-tiendas-cliente" type="search" placeholder="Nombre o categoría" oninput="filtrarDirectorioCliente()"></div>
+    <div id="directorio-tiendas-cliente" aria-live="polite"><p class="muted">Cargando tiendas disponibles...</p></div>
+  </div>
+  <p style="margin-top:16px;">¿Tienes un código de tienda? También puedes entrar directamente:</p>
   <div class="auth-box" style="max-width:320px;">
     <div class="field"><label>Código de tienda</label><input id="cc-codigo" placeholder="Ej. 7K2PX" style="text-transform:uppercase;"></div>
     <button class="save-btn" style="width:100%;" onclick="entrarClienteConCodigo()">Ver tienda</button>
@@ -1351,6 +1356,39 @@ function showComercioAuth(){
 function showClienteAuth(){
   hideAllScreens();
   document.getElementById('clienteAuth').classList.remove('hidden');
+  cargarDirectorioCliente();
+}
+let directorioCliente = [];
+async function cargarDirectorioCliente(){
+  const el = document.getElementById('directorio-tiendas-cliente');
+  el.innerHTML = '<p class="muted">Buscando comercios disponibles...</p>';
+  try{
+    const db = await waitForDb();
+    const { collection, getDocs } = window.__fs;
+    const snap = await getDocs(collection(db, 'publicStores'));
+    directorioCliente = [];
+    snap.forEach(d=>{
+      const v = d.data();
+      if(v.activa === true && v.nombre && /^[A-Z2-9]{5}$/.test(d.id)){
+        directorioCliente.push({code:d.id,nombre:String(v.nombre),categoria:String(v.categoria||'Comercio')});
+      }
+    });
+    directorioCliente.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+    filtrarDirectorioCliente();
+  }catch(e){
+    console.error('Error cargando directorio',e);
+    el.innerHTML = '<p class="muted">No fue posible cargar las tiendas. Intenta más tarde o utiliza el código del comercio.</p>';
+  }
+}
+function filtrarDirectorioCliente(){
+  const el = document.getElementById('directorio-tiendas-cliente');
+  const q = (document.getElementById('buscar-tiendas-cliente').value||'').trim().toLocaleLowerCase('es');
+  const lista = directorioCliente.filter(t=>(t.nombre+' '+t.categoria).toLocaleLowerCase('es').includes(q));
+  if(!lista.length){
+    el.innerHTML = '<p class="muted">No hay comercios disponibles que coincidan con tu búsqueda.</p>';
+    return;
+  }
+  el.innerHTML = lista.map(t=>'<button class="save-btn secondary" style="display:block;width:100%;margin:8px 0;text-align:left;" onclick="entrarATienda(\''+t.code+'\')">🏬 '+esc(t.nombre)+' <small>· '+esc(t.categoria)+'</small></button>').join('');
 }
 async function showAdminAuth(){
   hideAllScreens();
