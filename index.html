@@ -1102,7 +1102,7 @@ async function sget(key){
 async function sset(key, val, _retry){
   try{
     const db = await waitForDb();
-    const { doc, setDoc } = window.__fs;
+    const { doc, setDoc, runTransaction } = window.__fs;
     const parts = key.split(':');
 
     if(parts[0]==='tienda'){
@@ -1116,7 +1116,12 @@ async function sset(key, val, _retry){
     }
     if(parts[0]==='pedido'){
       const code = parts[1], orderCode = parts[2];
-      await setDoc(doc(db,'stores',code,'pedidos',orderCode), val);
+      await runTransaction(db,async tx=>{
+        const ref=doc(db,'stores',code,'pedidos',orderCode);
+        const snap=await tx.get(ref);
+        if(snap.exists()) throw new Error('Código de pedido ya existente');
+        tx.set(ref,val);
+      });
       return true;
     }
     return false;
@@ -3390,33 +3395,33 @@ async function avanzarEstadoPedido(code, nuevoEstado){
 }
 
 async function confirmarPagoRecibido(code){
-  const pedido = await sget(pKey(code));
-  if(!pedido) return;
   if(!esStaff()){ toast('Solo el comercio puede confirmar pagos'); return; }
-  pedido.verificado = true;
-  pedido.historial = pedido.historial || [];
-  pedido.historial.push({ estado:'pago_confirmado', fecha: Date.now(), nota:'Comercio confirmó el pago recibido' });
-  const ok = await sset(pKey(code), pedido);
-  if(!ok){ toast('No se pudo confirmar, intenta de nuevo'); return; }
-  toast('Pago del pedido #'+code+' confirmado');
-  renderPedidosList();
+  try{
+    const db=await waitForDb();
+    const {doc,runTransaction}=window.__fs;
+    const ref=doc(db,'stores',currentStoreId,'pedidos',code);
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists()) throw new Error('Pedido no encontrado');
+      const pedido=snap.data();
+      if(pedido.verificado) return;
+      tx.update(ref,{
+        verificado:true,
+        historial:[...(pedido.historial||[]),{estado:'pago_confirmado',fecha:Date.now(),nota:'Comercio confirmó el pago recibido'}]
+      });
+    });
+    toast('Pago del pedido #'+code+' confirmado');
+    renderPedidosList();
+  }catch(e){console.error('Confirmación de pago',e);toast(e.message||'No se pudo confirmar el pago');}
 }
 
-async function marcarEmpacado(code, checkboxEl){
-  checkboxEl.disabled = true;
-  const pedido = await sget(pKey(code));
-  if(!pedido){ checkboxEl.disabled = false; return; }
-  pedido.status = 'listo';
-  const ok = await sset(pKey(code), pedido);
-  if(!ok){
-    checkboxEl.disabled = false;
-    checkboxEl.checked = false;
-    toast('No se pudo actualizar, intenta de nuevo');
-    return;
+async function marcarEmpacado(code,checkboxEl){
+  if(checkboxEl) checkboxEl.disabled=true;
+  try{
+    await avanzarEstadoPedido(code,'listo');
+  }finally{
+    if(checkboxEl) checkboxEl.disabled=false;
   }
-  toast('Pedido #'+code+' empacado — cliente notificado');
-  renderPedidosList();
-  renderMetrics();
 }
 
 /* ---------------- cliente registrado ---------------- */
