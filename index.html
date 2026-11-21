@@ -4011,8 +4011,7 @@ async function renderAdminPanel(){
 
   for(const store of aprobadas){
     const info = (await sget('tienda:'+store.code+':info')) || {};
-    const founderSnap = await getDoc(doc(db,'stores',store.code));
-    const membership = founderSnap.exists() ? founderSnap.data().membership || null : null;
+    const membership = await sget('tienda:'+store.code+':membership');
     const estado = store.estado || 'aprobada';
     const motivoBloqueo = estado==='bloqueada' ? (await sget('tienda:'+store.code+':motivoBloqueo')) : '';
     const fechaVencimientoPago = await sget('tienda:'+store.code+':fechaVencimientoPago');
