@@ -1,7 +1,6 @@
-// BORRADOR PARA EMULADOR — NO PUBLICAR SIN PRUEBAS.
+// REGLAS DE DESARROLLO — PROBAR CON EMULADOR ANTES DE PUBLICAR.
 // Basado en las reglas compartidas el 21/11/2026.
-// Protege el programa de fundadores; mantiene las reglas operativas actuales,
-// incluida la regla de inventario del cliente, que requiere rediseño posterior.
+// Prohíbe escrituras de inventario, promociones y facturación desde clientes.
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -35,10 +34,7 @@ service cloud.firestore {
             && request.resource.data.get('fechaVencimientoPago', null) == resource.data.get('fechaVencimientoPago', null)
             && request.resource.data.get('motivoBloqueo', null) == resource.data.get('motivoBloqueo', null)
             && request.resource.data.get('motivoRechazo', null) == resource.data.get('motivoRechazo', null))
-        || (signedIn()
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['productos','promos','facturaConsecutivo'])
-            && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['productos'])
-                || request.resource.data.productos.size() == resource.data.productos.size()));
+;
       allow delete: if isAdmin();
       match /privado/{docId} {
         allow read, write: if isAdmin() || isOwner(code);
