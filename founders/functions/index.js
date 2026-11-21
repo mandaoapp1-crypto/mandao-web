@@ -5,7 +5,7 @@ const {initializeApp} = require("firebase-admin/app");
 const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 initializeApp();
 const db = getFirestore();
-exports.assignFounder = onCall({region:"us-central1", enforceAppCheck:true}, async (request) => {
+exports.assignFounder = onCall({region:"us-central1", enforceAppCheck:false}, async (request) => {
   if (!request.auth || request.auth.uid !== "WyHLc4kRQ6XyalFfi5rLYKj7ZZy2" && request.auth.token.admin !== true)
     throw new HttpsError("permission-denied", "Solo administradores autorizados.");
   const storeId = String(request.data?.storeId || "").trim();
