@@ -4011,6 +4011,8 @@ async function renderAdminPanel(){
 
   for(const store of aprobadas){
     const info = (await sget('tienda:'+store.code+':info')) || {};
+    const founderSnap = await getDoc(doc(db,'stores',store.code));
+    const membership = founderSnap.exists() ? founderSnap.data().membership || null : null;
     const estado = store.estado || 'aprobada';
     const motivoBloqueo = estado==='bloqueada' ? (await sget('tienda:'+store.code+':motivoBloqueo')) : '';
     const fechaVencimientoPago = await sget('tienda:'+store.code+':fechaVencimientoPago');
@@ -4025,7 +4027,7 @@ async function renderAdminPanel(){
     totalVentasGlobal += ventasTotal;
     totalPedidosGlobal += pedidos.length;
     totalPedidosMesGlobal += delMes.length;
-    rows.push({ code: store.code, nombre: info.nombre || store.nombre, pedidos: pedidos.length, pedidosMes: delMes.length, ventasTotal, ventasMes, createdAt: store.createdAt, estado, motivoBloqueo, fechaVencimientoPago, tabsHabilitados });
+    rows.push({ code: store.code, nombre: info.nombre || store.nombre, pedidos: pedidos.length, pedidosMes: delMes.length, ventasTotal, ventasMes, createdAt: store.createdAt, estado, motivoBloqueo, fechaVencimientoPago, tabsHabilitados, membership });
   }
 
   rows.sort((a,b)=>b.ventasTotal-a.ventasTotal);
@@ -4078,6 +4080,7 @@ async function renderAdminPanel(){
         <h4>${esc(r.nombre)}</h4>
         <span class="admin-store-code">${esc(r.code)}</span>
       </div>
+      ${r.membership?.plan==='founder' ? `<div style="margin:8px 0;font-weight:700;color:#075d9b;">⭐ Comercio Fundador MANDAW #${Number(r.membership.founderNumber)||'—'}</div>` : `<button class="small-btn" style="margin:8px 0;" onclick="asignarFundadorMandaw('${r.code}')">⭐ Asignar cupo fundador</button>`}
       ${r.estado==='bloqueada' ? `<div style="margin:6px 0;font-size:12.5px;font-weight:700;color:#fff;background:var(--rojo);display:inline-block;padding:4px 10px;border-radius:10px;">🚫 Bloqueada — ${esc(r.motivoBloqueo||'')}</div>` : ''}
       <div class="admin-store-stats">
         <div>Pedidos totales<b>${r.pedidos}</b></div>
@@ -4149,6 +4152,17 @@ async function eliminarTiendaAdmin(code, nombre){
   await registrarAuditoria('eliminar_tienda', { code, nombre });
   toast('Tienda eliminada permanentemente');
   renderAdminPanel();
+}
+async function asignarFundadorMandaw(code){
+  if(!confirm('¿Asignar uno de los 50 cupos de Comercio Fundador a '+code+'? Esta acción reserva el cupo.')) return;
+  try {
+    const {getFunctions,httpsCallable} = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js');
+    const {getApp} = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+    const fn = httpsCallable(getFunctions(getApp(),'us-central1'),'assignFounder');
+    const result = await fn({storeId:code});
+    toast('Comercio Fundador #'+result.data.founderNumber+' asignado');
+    await renderAdminPanel();
+  }catch(e){ console.error('Asignación fundador',e); toast('No se asignó el cupo: '+(e.message||'error')); }
 }
 async function aprobarTienda(code){
   const ok = await sset('tienda:'+code+':estado', 'aprobada');
