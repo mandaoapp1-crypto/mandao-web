@@ -15,6 +15,12 @@ service cloud.firestore {
     function isOwner(code) {
       return isStaffAuth() && request.auth.token.email == code.lower() + '@tiendas.mandaw.app';
     }
+    // Directorio de comercios: solo datos públicos publicados por backend/admin.
+    // No permitir escrituras desde clientes o comercios.
+    match /publicStores/{code} {
+      allow get, list: if signedIn();
+      allow create, update, delete: if false;
+    }
     match /stores/{code} {
       allow get: if signedIn();
       allow list: if isAdmin();
