@@ -1,0 +1,37 @@
+name: Verificar MANDAW
+on:
+  push:
+    branches: [main, desarrollo-mandaw-fundadores]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar JavaScript integrado
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import os from 'node:os';
+          import path from 'node:path';
+          import {spawnSync} from 'node:child_process';
+          const html = fs.readFileSync('index.html','utf8');
+          const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
+          if (!scripts.length) throw new Error('No se encontraron scripts');
+          const dir = fs.mkdtempSync(path.join(os.tmpdir(),'mandaw-'));
+          let failed = false;
+          for (const [i,script] of scripts.entries()) {
+            if (/\bsrc\s*=/.test(script[1])) continue;
+            const file = path.join(dir,'script-'+i+(/type\s*=\s*["']module["']/.test(script[1])?'.mjs':'.cjs'));
+            fs.writeFileSync(file,script[2]);
+            const result = spawnSync(process.execPath,['--check',file],{stdio:'inherit'});
+            if(result.status!==0) failed=true;
+          }
+          fs.rmSync(dir,{recursive:true,force:true});
+          if(failed) process.exit(1);
+          console.log('Sintaxis de scripts aprobada');
+          NODE
