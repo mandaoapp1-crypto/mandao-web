@@ -1116,12 +1116,7 @@ async function sset(key, val, _retry){
     }
     if(parts[0]==='pedido'){
       const code = parts[1], orderCode = parts[2];
-      await runTransaction(db,async tx=>{
-        const ref=doc(db,'stores',code,'pedidos',orderCode);
-        const snap=await tx.get(ref);
-        if(snap.exists()) throw new Error('Código de pedido ya existente');
-        tx.set(ref,val);
-      });
+      await setDoc(doc(db,'stores',code,'pedidos',orderCode), val);
       return true;
     }
     return false;
@@ -4359,6 +4354,12 @@ TOTAL: ${COP(pedido.total)}
 Comprobante generado por Mandaw.`;
 }
 
+async function setDocFacturaPedido(code, campos){
+  const db = await waitForDb();
+  const { doc, setDoc } = window.__fs;
+  await setDoc(doc(db,'stores',currentStoreId,'pedidos',code), campos, { merge: true });
+}
+
 async function verFactura(code){
   const pedido = await sget(pKey(code));
   if(!pedido) return;
@@ -4366,7 +4367,7 @@ async function verFactura(code){
   if(!numero){
     numero = await nextInvoiceNumber();
     pedido.invoiceNumber = numero;
-    await sset(pKey(code), pedido);
+    await setDocFacturaPedido(code, { invoiceNumber: numero });
   }
   const info = STATE.info, legal = STATE.legal;
   const fecha = new Date(pedido.createdAt).toLocaleString('es-CO');
@@ -4396,7 +4397,7 @@ async function verFactura(code){
 function closeFactura(){ document.getElementById('facturaOverlay').classList.add('hidden'); }
 async function markInvoiceSent(code){
   const pedido = await sget(pKey(code));
-  if(pedido){ pedido.invoiceSent = true; await sset(pKey(code), pedido); }
+  if(pedido){ await setDocFacturaPedido(code, { invoiceSent: true }); }
 }
 function copyFactura(btn){
   const texto = btn.getAttribute('data-texto');
